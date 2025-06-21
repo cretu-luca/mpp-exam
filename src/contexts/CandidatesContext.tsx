@@ -11,8 +11,8 @@ interface CandidatesContextType {
   deleteCandidate: (id: string) => Promise<void>;
   getCandidateById: (id: string) => Candidate | undefined;
   isGenerating: boolean;
-  startGeneration: () => Promise<void>;
-  stopGeneration: () => Promise<void>;
+  startGeneration: () => void;
+  stopGeneration: () => void;
   loading: boolean;
 }
 
@@ -31,48 +31,67 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Initialize polling for real-time updates
+  // Initialize Server-Sent Events connection
   useEffect(() => {
-    // Load initial data
-    void fetchCandidates();
-    void fetchGenerationStatus();
+    const eventSource = new EventSource('/api/candidates/events');
 
-    // Set up polling for real-time updates
-    const pollInterval = setInterval(() => {
-      void fetchCandidates();
-      void fetchGenerationStatus();
-    }, 1500); // Poll every 1.5 seconds for real-time feel
+    eventSource.onopen = () => {
+      console.log('Connected to Server-Sent Events');
+      setLoading(false);
+    };
 
+    eventSource.onmessage = (event) => {
+      try {
+        const eventData = JSON.parse(event.data) as { type: string; data: Candidate[] };
+        
+        if (eventData.type === 'candidates-updated') {
+          setCandidates(eventData.data);
+          setLoading(false);
+        }
+      } catch (error: unknown) {
+        console.error('Error parsing SSE message:', error instanceof Error ? error.message : 'Unknown error');
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.error('SSE connection error');
+      setLoading(false);
+    };
+
+    // Cleanup on unmount
     return () => {
-      clearInterval(pollInterval);
+      eventSource.close();
     };
   }, []);
 
-  const fetchCandidates = async () => {
-    try {
-      const response = await fetch('/api/candidates');
-      if (response.ok) {
-        const data = await response.json() as Candidate[];
-        setCandidates(data);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching candidates:', error);
-      setLoading(false);
-    }
-  };
+  // Load initial data and generation status
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [candidatesResponse, statusResponse] = await Promise.all([
+          fetch('/api/candidates'),
+          fetch('/api/candidates/generate')
+        ]);
 
-  const fetchGenerationStatus = async () => {
-    try {
-      const response = await fetch('/api/candidates/generate');
-      if (response.ok) {
-        const data = await response.json() as { isGenerating: boolean };
-        setIsGenerating(data.isGenerating);
+        if (candidatesResponse.ok) {
+          const data = await candidatesResponse.json() as Candidate[];
+          setCandidates(data);
+        }
+
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json() as { isGenerating: boolean };
+          setIsGenerating(statusData.isGenerating);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching generation status:', error);
-    }
-  };
+    };
+
+    void fetchInitialData();
+  }, []);
 
   const addCandidate = async (candidateData: Omit<Candidate, 'id'>) => {
     try {
@@ -87,6 +106,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         throw new Error('Failed to add candidate');
       }
+      // SSE will handle the update automatically
     } catch (error) {
       console.error('Error adding candidate:', error);
       throw error;
@@ -106,6 +126,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         throw new Error('Failed to update candidate');
       }
+      // SSE will handle the update automatically
     } catch (error) {
       console.error('Error updating candidate:', error);
       throw error;
@@ -121,6 +142,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         throw new Error('Failed to delete candidate');
       }
+      // SSE will handle the update automatically
     } catch (error) {
       console.error('Error deleting candidate:', error);
       throw error;
@@ -131,42 +153,46 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
     return candidates.find(candidate => candidate.id === id);
   };
 
-  const startGeneration = async () => {
-    try {
-      const response = await fetch('/api/candidates/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'start' }),
-      });
+  const startGeneration = () => {
+    void (async () => {
+      try {
+        const response = await fetch('/api/candidates/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action: 'start' }),
+        });
 
-      if (response.ok) {
-        const data = await response.json() as { isGenerating: boolean };
-        setIsGenerating(data.isGenerating);
+        if (response.ok) {
+          const data = await response.json() as { isGenerating: boolean };
+          setIsGenerating(data.isGenerating);
+        }
+      } catch (error) {
+        console.error('Error starting generation:', error);
       }
-    } catch (error) {
-      console.error('Error starting generation:', error);
-    }
+    })();
   };
 
-  const stopGeneration = async () => {
-    try {
-      const response = await fetch('/api/candidates/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'stop' }),
-      });
+  const stopGeneration = () => {
+    void (async () => {
+      try {
+        const response = await fetch('/api/candidates/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action: 'stop' }),
+        });
 
-      if (response.ok) {
-        const data = await response.json() as { isGenerating: boolean };
-        setIsGenerating(data.isGenerating);
+        if (response.ok) {
+          const data = await response.json() as { isGenerating: boolean };
+          setIsGenerating(data.isGenerating);
+        }
+      } catch (error) {
+        console.error('Error stopping generation:', error);
       }
-    } catch (error) {
-      console.error('Error stopping generation:', error);
-    }
+    })();
   };
 
   return (

@@ -1,9 +1,33 @@
 import { type Candidate } from '~/types';
 import { candidatesData } from '~/data/candidates';
 
-// Server-side candidates store
+// Subscription callback type
+type SubscriptionCallback = (candidates: Candidate[]) => void;
+
+// Server-side candidates store with subscription support
 class CandidatesStore {
   private candidates: Candidate[] = [...candidatesData];
+  private subscribers = new Set<SubscriptionCallback>();
+
+  // Subscription methods
+  subscribe(callback: SubscriptionCallback): () => void {
+    this.subscribers.add(callback);
+    // Return unsubscribe function
+    return () => {
+      this.subscribers.delete(callback);
+    };
+  }
+
+  private notifySubscribers(): void {
+    const candidatesCopy = [...this.candidates];
+    this.subscribers.forEach(callback => {
+      try {
+        callback(candidatesCopy);
+      } catch (error) {
+        console.error('Error in subscription callback:', error);
+      }
+    });
+  }
 
   getAllCandidates(): Candidate[] {
     return [...this.candidates];
@@ -24,6 +48,7 @@ class CandidatesStore {
     };
 
     this.candidates.push(newCandidate);
+    this.notifySubscribers();
     return newCandidate;
   }
 
@@ -32,6 +57,7 @@ class CandidatesStore {
     if (index === -1) return null;
 
     this.candidates[index] = { ...candidateData, id };
+    this.notifySubscribers();
     return this.candidates[index];
   }
 
@@ -40,6 +66,7 @@ class CandidatesStore {
     if (index === -1) return false;
 
     this.candidates.splice(index, 1);
+    this.notifySubscribers();
     return true;
   }
 }
