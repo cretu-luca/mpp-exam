@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { CandidatesProvider } from "~/contexts/CandidatesContext";
+import { VotingProvider } from "~/contexts/VotingContext";
 
 export const metadata: Metadata = {
   title: "Romanian Elections 2024",
@@ -24,9 +25,11 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body>
         <TRPCReactProvider>
-          <CandidatesProvider>
-            {children}
-          </CandidatesProvider>
+          <VotingProvider>
+            <CandidatesProvider>
+              {children}
+            </CandidatesProvider>
+          </VotingProvider>
         </TRPCReactProvider>
       </body>
     </html>

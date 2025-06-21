@@ -13,12 +13,21 @@ export default function Home() {
           Learn about their backgrounds, political parties, and visions for the country.
         </p>
         
-        <Link
-          href="/candidates"
-          className="rounded-lg bg-yellow-400 px-8 py-4 text-lg font-semibold text-blue-900 no-underline transition hover:bg-yellow-300"
-        >
-          View All Candidates
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/candidates"
+            className="rounded-lg bg-yellow-400 px-8 py-4 text-lg font-semibold text-blue-900 no-underline transition hover:bg-yellow-300 text-center"
+          >
+            View All Candidates
+          </Link>
+          
+          <Link
+            href="/vote"
+            className="rounded-lg bg-white px-8 py-4 text-lg font-semibold text-blue-900 no-underline transition hover:bg-gray-100 text-center"
+          >
+            Vote Now
+          </Link>
+        </div>
       </div>
     </main>
   );

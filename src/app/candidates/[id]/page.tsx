@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import { use } from "react";
+import { notFound, useRouter } from "next/navigation";
+import { use, useState } from "react";
 import { useCandidates } from "~/contexts/CandidatesContext";
+import { useVoting } from "~/contexts/VotingContext";
 
 export default function CandidateDetailPage({ 
   params 
@@ -13,6 +14,9 @@ export default function CandidateDetailPage({
 }) {
   const { id } = use(params);
   const { getCandidateById, loading } = useCandidates();
+  const { voter, vote, error, loading: voteLoading } = useVoting();
+  const [voteSuccess, setVoteSuccess] = useState(false);
+  const router = useRouter();
   const candidate = getCandidateById(id);
 
   if (loading) {
@@ -29,6 +33,74 @@ export default function CandidateDetailPage({
   if (!candidate) {
     notFound();
   }
+
+  const handleVote = async () => {
+    if (!voter) {
+      router.push('/vote');
+      return;
+    }
+
+    const success = await vote(candidate.id);
+    if (success) {
+      setVoteSuccess(true);
+    }
+  };
+
+  const renderVotingSection = () => {
+    if (!voter) {
+      return (
+        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">Ready to Vote?</h3>
+          <p className="text-blue-700 mb-4">You need to login or register to cast your vote.</p>
+          <Link 
+            href="/vote"
+            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Login to Vote
+          </Link>
+        </div>
+      );
+    }
+
+    if (voter.hasVoted) {
+      return (
+        <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-green-900 mb-2">Vote Cast</h3>
+          <p className="text-green-700">You have already cast your vote in this election.</p>
+        </div>
+      );
+    }
+
+    if (voteSuccess) {
+      return (
+        <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-green-900 mb-2">Vote Successful!</h3>
+          <p className="text-green-700">Thank you for participating in the democratic process. Your vote has been recorded.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-yellow-900 mb-2">Cast Your Vote</h3>
+        <p className="text-yellow-700 mb-4">
+          Hello, <strong>{voter.name}</strong>! Would you like to vote for {candidate.name}?
+        </p>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700">
+            {error}
+          </div>
+        )}
+        <button
+          onClick={handleVote}
+          disabled={voteLoading}
+          className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {voteLoading ? 'Casting Vote...' : `Vote for ${candidate.name}`}
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,6 +136,9 @@ export default function CandidateDetailPage({
                 
                 <h3 className="text-lg font-semibold mb-3 text-gray-900">About the Candidate</h3>
                 <p className="text-gray-700 leading-relaxed">{candidate.description}</p>
+                
+                {/* Voting section */}
+                {renderVotingSection()}
               </div>
             </div>
           </div>

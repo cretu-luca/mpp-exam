@@ -14,6 +14,26 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// Voting system models
+model Voter {
+    cnp       String    @id @unique // CNP is the unique identifier
+    name      String
+    createdAt DateTime  @default(now())
+    hasVoted  Boolean   @default(false)
+    votes     Vote[]
+}
+
+model Vote {
+    id          String   @id @default(cuid())
+    voterCnp    String
+    candidateId String
+    createdAt   DateTime @default(now())
+    
+    voter       Voter    @relation(fields: [voterCnp], references: [cnp])
+    
+    @@unique([voterCnp]) // Ensure one vote per voter
+}
+
 model Post {
     id        Int      @id @default(autoincrement())
     name      String
