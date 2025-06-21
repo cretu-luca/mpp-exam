@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { FakeNewsSection } from "./_components/FakeNews";
+import { ElectionSimulation } from "./_components/ElectionSimulation";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-600 to-blue-800 text-white">
+    <main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-blue-600 to-blue-800 text-white">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
           Romanian <span className="text-yellow-300">Elections</span> 2024
@@ -28,6 +30,16 @@ export default function Home() {
             Vote Now
           </Link>
         </div>
+      </div>
+      
+      {/* Election Simulation Section */}
+      <div className="w-full pb-16">
+        <ElectionSimulation />
+      </div>
+      
+      {/* Fake News Section */}
+      <div className="w-full pb-16">
+        <FakeNewsSection />
       </div>
     </main>
   );
