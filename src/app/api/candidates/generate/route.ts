@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { candidatesStore } from '~/lib/candidatesStore';
 
 // Random names for generation
@@ -33,7 +33,7 @@ function generateRandomCandidate() {
   // Get existing parties from current candidates
   const currentCandidates = candidatesStore.getAllCandidates();
   const existingParties = [...new Set(currentCandidates.map(c => c.party))];
-  const party = existingParties[Math.floor(Math.random() * existingParties.length)] || 'Independent';
+  const party = existingParties[Math.floor(Math.random() * existingParties.length)] ?? 'Independent';
   
   const description = descriptions[Math.floor(Math.random() * descriptions.length)]!;
   
@@ -51,7 +51,7 @@ let isGenerating = false;
 // POST /api/candidates/generate - Start/Stop generation
 export async function POST(request: NextRequest) {
   try {
-    const { action } = await request.json();
+    const { action } = await request.json() as { action: string };
     
     if (action === 'start') {
       if (isGenerating) {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to control generation' }, { status: 500 });
   }
 }

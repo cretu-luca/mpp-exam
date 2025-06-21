@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { candidatesStore } from '~/lib/candidatesStore';
 import { type Candidate } from '~/types';
 
@@ -16,7 +16,7 @@ export async function GET(
     }
     
     return NextResponse.json(candidate);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch candidate' }, { status: 500 });
   }
 }
@@ -28,7 +28,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const candidateData: Omit<Candidate, 'id'> = await request.json();
+    const candidateData = await request.json() as Omit<Candidate, 'id'>;
     
     // Validate required fields
     if (!candidateData.name || !candidateData.party || !candidateData.description) {
@@ -42,7 +42,7 @@ export async function PUT(
     }
     
     return NextResponse.json(updatedCandidate);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update candidate' }, { status: 500 });
   }
 }
@@ -61,7 +61,7 @@ export async function DELETE(
     }
     
     return NextResponse.json({ message: 'Candidate deleted successfully' });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete candidate' }, { status: 500 });
   }
 } 

@@ -9,9 +9,7 @@ export const CandidatesChart = () => {
   // Group candidates by party and count them
   const partyData = candidates.reduce((acc, candidate) => {
     const party = candidate.party;
-    if (!acc[party]) {
-      acc[party] = 0;
-    }
+    acc[party] ??= 0;
     acc[party]++;
     return acc;
   }, {} as Record<string, number>);
@@ -72,10 +70,10 @@ export const CandidatesChart = () => {
               }}
             />
             <Tooltip 
-              formatter={(value, name) => [value, 'Candidates']}
-              labelFormatter={(label) => {
+              formatter={(value) => [value, 'Candidates']}
+              labelFormatter={(label: string) => {
                 const item = chartData.find(d => d.party === label);
-                return item ? item.fullParty : label;
+                return item?.fullParty ?? label;
               }}
               contentStyle={{
                 backgroundColor: '#F9FAFB',

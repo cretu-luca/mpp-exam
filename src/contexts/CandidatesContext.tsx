@@ -34,13 +34,13 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
   // Initialize polling for real-time updates
   useEffect(() => {
     // Load initial data
-    fetchCandidates();
-    fetchGenerationStatus();
+    void fetchCandidates();
+    void fetchGenerationStatus();
 
     // Set up polling for real-time updates
     const pollInterval = setInterval(() => {
-      fetchCandidates();
-      fetchGenerationStatus();
+      void fetchCandidates();
+      void fetchGenerationStatus();
     }, 1500); // Poll every 1.5 seconds for real-time feel
 
     return () => {
@@ -52,7 +52,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch('/api/candidates');
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as Candidate[];
         setCandidates(data);
       }
       setLoading(false);
@@ -66,7 +66,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch('/api/candidates/generate');
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { isGenerating: boolean };
         setIsGenerating(data.isGenerating);
       }
     } catch (error) {
@@ -142,7 +142,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { isGenerating: boolean };
         setIsGenerating(data.isGenerating);
       }
     } catch (error) {
@@ -161,7 +161,7 @@ export const CandidatesProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { isGenerating: boolean };
         setIsGenerating(data.isGenerating);
       }
     } catch (error) {

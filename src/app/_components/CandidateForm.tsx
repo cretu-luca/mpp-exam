@@ -11,9 +11,9 @@ interface CandidateFormProps {
 
 export const CandidateForm = ({ candidate, onSubmit, onCancel }: CandidateFormProps) => {
   const [formData, setFormData] = useState({
-    name: candidate?.name || '',
-    party: candidate?.party || '',
-    description: candidate?.description || '',
+    name: candidate?.name ?? '',
+    party: candidate?.party ?? '',
+    description: candidate?.description ?? '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {

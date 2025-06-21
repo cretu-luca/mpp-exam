@@ -25,7 +25,7 @@ export default function CandidatesPage() {
     try {
       await addCandidate(candidateData);
       setShowForm(false);
-    } catch (error) {
+    } catch {
       alert('Failed to add candidate. Please try again.');
     }
   };
@@ -41,7 +41,7 @@ export default function CandidatesPage() {
         await updateCandidate(editingCandidate.id, candidateData);
         setEditingCandidate(null);
         setShowForm(false);
-      } catch (error) {
+      } catch {
         alert('Failed to update candidate. Please try again.');
       }
     }
@@ -51,7 +51,7 @@ export default function CandidatesPage() {
     if (confirm('Are you sure you want to delete this candidate?')) {
       try {
         await deleteCandidate(id);
-      } catch (error) {
+      } catch {
         alert('Failed to delete candidate. Please try again.');
       }
     }
@@ -124,7 +124,7 @@ export default function CandidatesPage() {
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      handleDeleteCandidate(candidate.id);
+                      void handleDeleteCandidate(candidate.id);
                     }}
                     className="bg-red-500 text-white p-1 rounded text-xs hover:bg-red-600"
                   >

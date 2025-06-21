@@ -32,7 +32,7 @@ class CandidatesStore {
     if (index === -1) return null;
 
     this.candidates[index] = { ...candidateData, id };
-    return this.candidates[index]!;
+    return this.candidates[index];
   }
 
   deleteCandidate(id: string): boolean {
