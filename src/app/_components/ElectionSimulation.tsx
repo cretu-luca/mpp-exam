@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { candidatesData } from "~/data/candidates";
-import { type Candidate } from "~/types";
 
 interface SimulationResult {
   candidateId: string;
@@ -21,7 +20,7 @@ interface SecondRoundCandidate {
 }
 
 // Gaussian random number generator using Box-Muller transform
-function gaussianRandom(mean: number = 0, stdDev: number = 1): number {
+function gaussianRandom(mean = 0, stdDev = 1): number {
   let u = 0, v = 0;
   while(u === 0) u = Math.random(); // Converting [0,1) to (0,1)
   while(v === 0) v = Math.random();
@@ -39,7 +38,7 @@ export const ElectionSimulation = () => {
     // Check if there are saved results in localStorage
     const savedResults = localStorage.getItem('election-second-round');
     if (savedResults) {
-      const parsed = JSON.parse(savedResults);
+      const parsed = JSON.parse(savedResults) as SecondRoundCandidate[];
       setSecondRoundCandidates(parsed);
       setHasSimulated(true);
     }
@@ -52,7 +51,7 @@ export const ElectionSimulation = () => {
     setTimeout(() => {
       // Create candidate weights using Gaussian distribution
       // Some candidates are more favored than others
-      const candidateWeights: { [key: string]: number } = {
+      const candidateWeights: Record<string, number> = {
         "1": gaussianRandom(0.8, 0.2), // Klaus Iohannis - slightly favored
         "2": gaussianRandom(0.9, 0.15), // Marcel Ciolacu - most favored
         "3": gaussianRandom(0.7, 0.25), // Elena Lasconi - moderately favored
@@ -70,7 +69,7 @@ export const ElectionSimulation = () => {
       const totalWeight = Object.values(candidateWeights).reduce((sum, weight) => sum + weight, 0);
 
       // Simulate 100 voters
-      const votes: { [key: string]: number } = {};
+      const votes: Record<string, number> = {};
       candidatesData.forEach(candidate => {
         votes[candidate.id] = 0;
       });
@@ -82,7 +81,7 @@ export const ElectionSimulation = () => {
         for (const candidate of candidatesData) {
           accumulated += candidateWeights[candidate.id]!;
           if (random <= accumulated) {
-            votes[candidate.id]++;
+            votes[candidate.id] = (votes[candidate.id] ?? 0) + 1;
             break;
           }
         }
